@@ -453,7 +453,22 @@ func (s *MCPServer) handleToolsList(msg MCPMessage) MCPMessage {
 
 func (s *MCPServer) handleToolsCall(ctx context.Context, msg MCPMessage) MCPMessage {
 	var params CallToolParams
-	if err := json.Unmarshal(msg.Params.([]byte), &params); err != nil {
+	
+	// Converter params para JSON e depois fazer unmarshal
+	paramsBytes, err := json.Marshal(msg.Params)
+	if err != nil {
+		return MCPMessage{
+			JSONRPC: "2.0",
+			ID:      msg.ID,
+			Error: &MCPError{
+				Code:    -32602,
+				Message: "Invalid params",
+				Data:    err.Error(),
+			},
+		}
+	}
+	
+	if err := json.Unmarshal(paramsBytes, &params); err != nil {
 		return MCPMessage{
 			JSONRPC: "2.0",
 			ID:      msg.ID,
